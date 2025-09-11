@@ -424,7 +424,7 @@ const OrderForm = ({ place = "", setPlace = (f) => f, idItems = 0 }) => {
     formData.append("PriceDelivery", "Уточнить цену доставки");
     formData.append("OrderNumber", uuidv4());
 
-    if(customer.type === "Оптовый покупатель"){
+    if (customer.type === "Оптовый покупатель") {
       formData.append("typeCustomer", true);
     }
 
@@ -533,7 +533,7 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
     if (!validateResult) return false;
 
     dataForm.append("to", process.env.NEXT_PUBLIC_MAIL_FOR_ORDERS);
-    
+
     //Отправка данных
     const request = await fetch(
       `${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_AUTH}`,
@@ -545,22 +545,28 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
 
     if (await request.ok) {
       const result = await request.json();
+
       if (result.data.status != "undefined" && result.data.status == "error") {
         setInfoMessage("Ошибка авторизации. Неверный логин или пароль.");
-      } else if (result.data.status == "success") {
-        setInfoMessage("Авторизация успешна!");
-        
-        // Авторизуем пользователя
-        auth(result.data.userdata[0]);
-        
-        setTimeout(() => {
-          toggleModal();
-          setInfoMessage("");
-          
-          // Теперь данные автоматически синхронизируются через Redux
-          // Принудительная перезагрузка больше не нужна
-        }, 1000);
+        return;
       }
+
+      if (result.data.userdata[0].confirm === false) {
+        setInfoMessage("Аккаунт не подтвержден. Пожалуйста, дождитесь подтверждения нашим менеджером.");
+        return;
+      }
+      setInfoMessage("Авторизация успешна!");
+
+      // Авторизуем пользователя
+      auth(result.data.userdata[0]);
+
+      setTimeout(() => {
+        toggleModal();
+        setInfoMessage("");
+
+        // Теперь данные автоматически синхронизируются через Redux
+        // Принудительная перезагрузка больше не нужна
+      }, 1000);
     }
   };
 
@@ -614,8 +620,8 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
                 strokeLinejoin="round"
               />
             </svg>
-            </div>
-           
+          </div>
+
           <span
             style={{ textAlign: "center", display: "block", margin: "auto" }}
           >
@@ -627,8 +633,8 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
             }}
           >
             Забыли пароль?
-            </span>
-          
+          </span>
+
           <button onClick={(f) => f} type="submit">
             Отправить
           </button>
@@ -637,8 +643,6 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
     </form>
   );
 };
-
-// ... existing code ...
 
 const RegForm = ({ place = "", setPlace = (f) => f }) => {
   const formRef = useRef();
@@ -653,16 +657,15 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
     e.preventDefault();
 
     const dataForm = new FormData(formRef.current);
-    
+
     // Удаляем значение чекбокса из FormData, так как оно отправляет "on"
     dataForm.delete("typeCustomer");
-    
+
     // Добавляем правильное значение только если чекбокс отмечен
     if (typeCustomer) {
       dataForm.append("typeCustomer", true);
     }
 
-    console.log("FormData contents:");
     for (let [key, value] of dataForm.entries()) {
       console.log(`${key}: ${value}`);
     }
@@ -682,11 +685,11 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
         body: dataForm,
       }
     );
-    
+
     if (await request.ok) {
       const result = await request.json();
       console.log("Server response:", result);
-      
+
       if (result.data.status == "error") {
         setInfoMessage(
           result.data?.message ? result.data?.message : "Неизвестная ошибка"
@@ -720,32 +723,32 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
           Войдите
         </strong>
       </p>
-      
+
       <label htmlFor="tel">Телефон</label>
       <input type="tel" name="tel" placeholder="" required />
-      
+
       <label htmlFor="email">Электронная почта</label>
       <input type="email" name="email" placeholder="" required />
-      
+
       <label htmlFor="name">ФИО</label>
       <input type="text" name="name" placeholder="" required />
-      
+
       <label htmlFor="password">Придумайте пароль</label>
       <input type="password" name="password" placeholder="" required />
 
       <div className={styles.checkbox_partner}>
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           id="forPartners"
-          name="typeCustomer" 
+          name="typeCustomer"
           checked={typeCustomer}
           onChange={(e) => {
             setTypeCustomer(e.target.checked);
-          }} 
+          }}
         />
         <label htmlFor="forPartners">Оптовый покупатель</label>
       </div>
-      
+
       <span>{infoMessage}</span>
       <button type="submit">
         Отправить
