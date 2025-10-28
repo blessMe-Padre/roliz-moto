@@ -415,8 +415,17 @@ const OrderForm = ({ place = "", setPlace = (f) => f, idItems = 0 }) => {
     const validateResult = validateForms(formData, formRef);
     if (!validateResult) return;
 
-    const tempItems = cart.map((item) => item.id);
-    if (tempItems.length === 0) return;
+    // Создаем массив товаров с полной информацией (включая количество)
+    const orderItems = cart.map((item) => ({
+      id: item.id,
+      title: item.title,
+      price: customer.type === "Оптовый покупатель" ? (item.priceOpt || item.price) : item.price,
+      quantitySales: item.quantityForBuy,
+      totalPrice: (customer.type === "Оптовый покупатель" ? (item.priceOpt || item.price) : item.price) * item.quantityForBuy
+    }));
+
+    console.log("Order items with quantities:", orderItems);
+    if (orderItems.length === 0) return;
 
     formData.append("to", process.env.NEXT_PUBLIC_MAIL_FOR_ORDERS);
     formData.append("OrderStatus", "Необработаный");
@@ -429,8 +438,12 @@ const OrderForm = ({ place = "", setPlace = (f) => f, idItems = 0 }) => {
     }
 
     const formJSON = Object.fromEntries(formData.entries());
-    formJSON.OrderItems = { connect: tempItems };
+    formJSON.OrderItems = orderItems; // Передаем полную информацию о товарах
     formJSON.Customers = { connect: [customer.id !== -1 ? customer.id : 3] };
+
+    // Добавляем общую информацию о заказе
+    formJSON.TotalItems = orderItems.reduce((sum, item) => sum + item.quantitySales, 0);
+    formJSON.TotalPrice = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
     console.log(formJSON)
 
@@ -555,18 +568,21 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
         setInfoMessage("Аккаунт не подтвержден. Пожалуйста, дождитесь подтверждения нашим менеджером.");
         return;
       }
-      setInfoMessage("Авторизация успешна!");
 
-      // Авторизуем пользователя
-      auth(result.data.userdata[0]);
+      if (result.data.status == "success") {
+        setInfoMessage("Авторизация успешна!");
 
-      setTimeout(() => {
-        toggleModal();
-        setInfoMessage("");
+        // Авторизуем пользователя
+        auth(result.data.userdata[0]);
 
-        // Теперь данные автоматически синхронизируются через Redux
-        // Принудительная перезагрузка больше не нужна
-      }, 1000);
+        setTimeout(() => {
+          toggleModal();
+          setInfoMessage("");
+
+          // Теперь данные автоматически синхронизируются через Redux
+          // Принудительная перезагрузка больше не нужна
+        }, 1000);
+      }
     }
   };
 
@@ -644,6 +660,8 @@ const AuthForm = ({ place = "", setPlace = (f) => f }) => {
   );
 };
 
+// ... existing code ...
+
 const RegForm = ({ place = "", setPlace = (f) => f }) => {
   const formRef = useRef();
 
@@ -652,22 +670,54 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
 
   const [infoMessage, setInfoMessage] = useState("");
   const [typeCustomer, setTypeCustomer] = useState(false);
+  const [innLength, setInnLength] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const dataForm = new FormData(formRef.current);
+    // Собираем данные вручную, избегая FormData
+    const formData = {
+      tel: formRef.current.querySelector('[name="tel"]')?.value || '',
+      email: formRef.current.querySelector('[name="email"]')?.value || '',
+      password: formRef.current.querySelector('[name="password"]')?.value || '',
+      typeCustomer: typeCustomer ? 'true' : 'false'
+    };
 
-    // Удаляем значение чекбокса из FormData, так как оно отправляет "on"
-    dataForm.delete("typeCustomer");
-
-    // Добавляем правильное значение только если чекбокс отмечен
-    if (typeCustomer) {
-      dataForm.append("typeCustomer", true);
+    // Добавляем ФИО только если это не оптовый покупатель
+    if (!typeCustomer) {
+      formData.name = formRef.current.querySelector('[name="name"]')?.value || '';
     }
 
+    // Добавляем поля компании только для оптовых покупателей
+    if (typeCustomer) {
+      formData.companyName = formRef.current.querySelector('[name="companyName"]')?.value || '';
+      formData.inn = formRef.current.querySelector('[name="inn"]')?.value || '';
+      formData.website = formRef.current.querySelector('[name="website"]')?.value || '';
+      formData.confirm = false;
+    }
+
+    console.log("Отправляемые данные:", formData);
+
+    // Создаем FormData для отправки
+    const dataForm = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== '' && formData[key] !== null && formData[key] !== undefined) {
+        dataForm.append(key, formData[key]);
+      }
+    });
+
+    // Проверяем содержимое FormData перед отправкой
+    console.log("FormData содержимое:");
     for (let [key, value] of dataForm.entries()) {
       console.log(`${key}: ${value}`);
+    }
+
+    // Проверяем, нет ли дублирующихся полей в форме
+    const allInputs = formRef.current.querySelectorAll('input, select, textarea');
+    const names = Array.from(allInputs).map(input => input.name);
+    const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
+    if (duplicates.length > 0) {
+      console.warn("Найдены дублирующиеся поля:", duplicates);
     }
 
     const validateResult = validateForms(dataForm, formRef);
@@ -695,10 +745,14 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
           result.data?.message ? result.data?.message : "Неизвестная ошибка"
         );
       } else if (result.data.status == "success") {
-        setInfoMessage("Регистрация успешна!");
+        if (typeCustomer) {
+          setInfoMessage("Регистрация успешна! Ждите, когда модератор проверит вашу заявку.");
+        } else {
+          setInfoMessage("Регистрация успешна!");
+        }
         setTimeout(() => {
           toggleModal();
-        }, 2000);
+        }, typeCustomer ? 4000 : 2000); // Увеличиваем время показа сообщения для оптовых покупателей
         auth(result.data.userdata[0]);
       }
     } else {
@@ -724,17 +778,24 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
         </strong>
       </p>
 
-      <label htmlFor="tel">Телефон</label>
-      <input type="tel" name="tel" placeholder="" required />
+      <label htmlFor="tel">Телефон *</label>
+      <input type="tel" name="tel" id="tel" placeholder="" required />
+      <small style={{ color: '#ACACAC', fontSize: '11px', marginTop: '2px' }}>
+        Обязательно для связи с менеджером
+      </small>
 
       <label htmlFor="email">Электронная почта</label>
-      <input type="email" name="email" placeholder="" required />
+      <input type="email" name="email" id="email" placeholder="" required />
 
-      <label htmlFor="name">ФИО</label>
-      <input type="text" name="name" placeholder="" required />
+      {!typeCustomer && (
+        <div className="conditional-field">
+          <label htmlFor="name">ФИО</label>
+          <input type="text" name="name" id="name" placeholder="" required />
+        </div>
+      )}
 
       <label htmlFor="password">Придумайте пароль</label>
-      <input type="password" name="password" placeholder="" required />
+      <input type="password" name="password" id="password" placeholder="" required />
 
       <div className={styles.checkbox_partner}>
         <input
@@ -746,8 +807,77 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
             setTypeCustomer(e.target.checked);
           }}
         />
-        <label htmlFor="forPartners">Оптовый покупатель</label>
+        <label htmlFor="forPartners">
+          Оптовый покупатель
+        </label>
+        {!typeCustomer && (
+          <small style={{ color: '#ACACAC', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+            Отметьте, чтобы добавить информацию о компании (ФИО не потребуется)
+          </small>
+        )}
       </div>
+
+      {/* Дополнительные поля для оптовых покупателей */}
+      {typeCustomer && (
+        <>
+
+
+          <small style={{ color: '#ACACAC', fontSize: '12px', marginBottom: '10px', display: 'block' }}>
+            * - обязательные поля для оптовых покупателей
+          </small>
+          <small style={{ color: '#FFCA18', fontSize: '11px', marginBottom: '15px', display: 'block', textAlign: 'center' }}>
+            ⚠️ Оптовые заявки требуют проверки модератора
+          </small>
+          <label htmlFor="companyName">Название компании * <span style={{ color: '#FFCA18', fontSize: '11px' }}></span></label>
+          <input
+            type="text"
+            name="companyName"
+            id="companyName"
+            placeholder="Введите название компании"
+            required
+            minLength="3"
+            title="Название компании должно содержать минимум 3 символа"
+          />
+
+          <label htmlFor="inn">ИНН * <span style={{ color: '#FFCA18', fontSize: '11px' }}></span></label>
+          <input
+            type="text"
+            name="inn"
+            id="inn"
+            placeholder="Введите ИНН (10 или 12 цифр)"
+            pattern="[0-9]{10}|[0-9]{12}"
+            title="ИНН должен содержать 10 или 12 цифр"
+            required
+            onInput={(e) => {
+              // Убираем все нецифровые символы
+              e.target.value = e.target.value.replace(/\D/g, '');
+              // Ограничиваем длину
+              if (e.target.value.length > 12) {
+                e.target.value = e.target.value.substring(0, 12);
+              }
+              // Обновляем счетчик
+              setInnLength(e.target.value.length);
+            }}
+          />
+          <small style={{ color: '#ACACAC', fontSize: '11px', marginTop: '2px' }}>
+            {innLength}/12 цифр
+          </small>
+
+          <label htmlFor="website">Сайт <span style={{ color: '#ACACAC', fontSize: '11px' }}>(необязательно)</span></label>
+          <input
+            type="url"
+            name="website"
+            id="website"
+            placeholder="https://example.com"
+            onBlur={(e) => {
+              // Автоматически добавляем протокол, если его нет
+              if (e.target.value && !e.target.value.startsWith('http://') && !e.target.value.startsWith('https://')) {
+                e.target.value = 'https://' + e.target.value;
+              }
+            }}
+          />
+        </>
+      )}
 
       <span>{infoMessage}</span>
       <button type="submit">
@@ -977,7 +1107,7 @@ export const ConsultForm = ({ place = "", setPlace = (f) => f }) => {
                 className="p-3 md:p-4 rounded-lg bg-yellow-default text-black font-semibold text-sm md:text-xl xl:text-base cursor-pointer disabled:bg-gray-medium disabled:text-gray-dark disabled:cursor-not-allowed transition-colors"
                 disabled={!isConsentChecked}
               >
-                Получить консультацию
+                Отправить сообщение
               </button>
 
               <div className="flex items-start mt-2">
@@ -1036,6 +1166,34 @@ const validateForms = (form, formRef) => {
         }
         data[1] = "success";
       case "to":
+        data[1] = "success";
+        break;
+      case "companyName":
+        if (!data[1]) {
+          data[1] = "Название компании обязательно для заполнения.";
+          break;
+        }
+        data[1] = "success";
+        break;
+      case "inn":
+        if (!data[1]) {
+          data[1] = "ИНН обязателен для заполнения.";
+          break;
+        }
+        // Проверяем формат ИНН (10 или 12 цифр)
+        if (!/^\d{10}(\d{2})?$/.test(data[1])) {
+          data[1] = "ИНН должен содержать 10 или 12 цифр.";
+          break;
+        }
+        data[1] = "success";
+        break;
+
+      case "website":
+        // Сайт не обязателен, но если указан, проверяем формат
+        if (data[1] && !/^https?:\/\/.+/.test(data[1])) {
+          data[1] = "Сайт должен начинаться с http:// или https://";
+          break;
+        }
         data[1] = "success";
         break;
       default:
