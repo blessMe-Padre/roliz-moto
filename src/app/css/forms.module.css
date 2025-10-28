@@ -1,4 +1,3 @@
-
 .sliderForm {
     display: flex;
     flex-direction: column;
@@ -10,6 +9,7 @@
     width: 20%;
     background: linear-gradient(145deg, #2C2C2C 0%, rgba(44, 44, 44, 0.00) 100%);
 }
+
 .sliderForm h3 {
     font-size: 2vw;
     width: 100%;
@@ -17,6 +17,7 @@
     text-align: center;
     color: #fff;
 }
+
 .sliderForm input {
     color: #fff;
     border-radius: 27px;
@@ -24,10 +25,12 @@
     padding: 5% 10%;
     border: none;
 }
+
 .formOrder {
     margin-top: 2%;
     transition: all .3s;
 }
+
 .formOrder input::placeholder {
     color: #ACACAC;
     font-family: Geologica;
@@ -36,15 +39,18 @@
     font-weight: 400;
     line-height: normal;
 }
+
 .formOrder input {
     padding-left: 5%;
     padding-top: 10px;
     padding-bottom: 10px;
     border-radius: 5px;
     border: 1px solid #626262;
-    width: 94.3%;
-    background-color: rgba(0,0,0,0);
+    /* width: 94.3%; */
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0);
 }
+
 .checkbox_partner {
     margin-top: 20px;
     display: flex;
@@ -52,6 +58,7 @@
     align-items: center;
     gap: 10px;
 }
+
 .checkbox_partner label {
     font-size: 1.2vw;
     font-weight: 400;
@@ -59,45 +66,46 @@
 
     margin-top: 0 !important;
 }
+
 .checkbox_partner input {
     width: 1.2vw;
     height: 1.2vw;
     border-radius: 5px;
     border: 1px solid #626262;
 }
+
 .checkbox_partner input:checked {
     background-color: #FFCA18;
     border-color: #FFCA18;
     transform: scale(1.1);
     transition: all 0.2s ease;
 }
-.checkbox_partner input:checked + label {
+
+.checkbox_partner input:checked+label {
     color: #000;
 }
 
-.checkbox_partner small {
-    color: #ACACAC;
-    font-size: 12px;
-    margin-top: 5px;
-    display: block;
-    transition: opacity 0.3s ease;
-}
-.formOrder input:nth-child(2){
+.formOrder input:nth-child(2) {
     margin-top: 10px !important;
 }
+
 .romanTheBestEpta {
     width: 90%;
     margin: auto;
     margin-top: 20px;
     margin-top: 20px;
 }
+
 .romanTheBestEpta input {
     margin-top: 10px;
     margin-bottom: 10px;
 }
-.sliderForm input:not(input[type="name"]),.sliderForm button {
+
+.sliderForm input:not(input[type="name"]),
+.sliderForm button {
     margin-top: 4%;
 }
+
 .sliderForm button {
     font-weight: bold;
     font-size: 1.2vw;
@@ -108,15 +116,19 @@
     cursor: pointer;
     transition: all .3s;
 }
+
 .sliderForm button:hover {
     scale: 1.1;
 }
+
 .showSearch {
     opacity: 1;
 }
+
 .hideSearch {
     opacity: 0;
 }
+
 .mainContainerForm {
     display: flex;
     flex-direction: row;
@@ -131,6 +143,7 @@
     max-height: 300px;
     background: var(--orange, #FFCA18);
 }
+
 .mainContainerForm form {
     position: relative;
     display: flex;
@@ -141,6 +154,7 @@
     margin-bottom: 2%;
     transition: all .3s;
 }
+
 .mainContainerForm form div {
     display: flex;
     flex-direction: row;
@@ -148,17 +162,20 @@
     justify-content: space-between;
     width: 100%;
 }
+
 .mainContainerForm form h3 {
     text-transform: uppercase;
     font-weight: 900;
     font-size: 3vw;
 }
+
 .mainContainerForm form p {
     font-weight: 400;
     font-size: 1.3vw;
     width: 100%;
     margin-bottom: 5%;
 }
+
 .mainContainerForm form input {
     border: none;
     padding: 2% 5%;
@@ -166,6 +183,7 @@
     border-radius: 40px;
     background: #FFF;
 }
+
 .mainContainerForm form button {
     width: 100%;
     border: none;
@@ -178,65 +196,43 @@
     font-size: 1.4vw;
     transition: all .3s;
 }
+
 .mainContainerForm button:hover {
     scale: 1.1;
 }
-.mainContainerForm form h3, .mainContainerForm form p {
+
+.mainContainerForm form h3,
+.mainContainerForm form p {
     text-align: center;
     width: 100%;
 }
+
 .imgContainer {
     position: relative;
     width: 25%;
     height: 80%;
 }
+
 .formRegistration button {
     margin-top: 20px;
 }
 
-/* Добавляем скролл для формы регистрации */
-.formRegistration {
-    max-height: 80vh;
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-.formRegistration::-webkit-scrollbar {
-    width: 6px;
-}
-
-.formRegistration::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.formRegistration::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
-.formRegistration::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Стили для Firefox */
-.formRegistration {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-}
 .recoveryEnd {
     width: 90%;
     margin: auto;
     padding-top: 17px;
     padding-bottom: 17px;
 }
+
 .recoveryEnd h2 {
     text-align: center;
 }
+
 .recoveryEnd p {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
 @media screen and (max-width: 498px) {
     .mainContainerForm {
         display: flex;
@@ -251,6 +247,7 @@
         min-height: max-content;
         max-height: 300px;
     }
+
     .formOrder input {
         padding-left: 2%;
         padding-top: 2%;
@@ -259,9 +256,11 @@
         border: 1px solid #626262;
         width: 97%;
     }
+
     .imgContainer {
-       display: none;
+        display: none;
     }
+
     .mainContainerForm form {
         position: relative;
         display: flex;
@@ -271,6 +270,7 @@
         height: 100%;
         margin-bottom: 2%;
     }
+
     .mainContainerForm form input {
         border: none;
         padding: 4% 5%;
@@ -279,16 +279,19 @@
         background: #FFF;
         font-size: 3.6vw;
     }
+
     .mainContainerForm form input:last-child {
         margin-top: 10px;
         margin-bottom: 10px;
     }
+
     .mainContainerForm form p {
         font-weight: 400;
         font-size: 3.3vw;
         width: 100%;
         margin-bottom: 5%;
     }
+
     .mainContainerForm form div {
         display: flex;
         flex-direction: column;
@@ -296,11 +299,13 @@
         justify-content: space-between;
         width: 100%;
     }
+
     .mainContainerForm form h3 {
         text-transform: uppercase;
         font-weight: 900;
         font-size: 5vw;
     }
+
     .mainContainerForm form button {
         width: 100%;
         border: none;
@@ -313,6 +318,7 @@
         font-size: 3.4vw;
         transition: all .3s;
     }
+
     .sliderForm {
         display: flex;
         flex-direction: column;
@@ -325,6 +331,7 @@
         background: linear-gradient(145deg, #2C2C2C 0%, rgba(44, 44, 44, 0.00) 100%);
         margin: auto;
     }
+
     .sliderForm h3 {
         font-size: 6vw;
         width: 100%;
@@ -348,67 +355,25 @@
     .sliderForm h3 {
         font-size: 30px;
     }
-    .sliderForm button, .sliderForm input {
+
+    .sliderForm button,
+    .sliderForm input {
         font-size: 20px;
     }
+
     .mainContainerForm form h3 {
         font-size: 40px;
     }
+
     .mainContainerForm form p {
         font-size: 20px;
     }
+
     .mainContainerForm form input {
         font-size: 20px;
     }
+
     .mainContainerForm form button {
         font-size: 20px;
-    }
-}
-
-/* Стили для полей оптовых покупателей */
-.partnerFields {
-    margin-top: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.partnerFields label {
-    color: #fff;
-    font-weight: 600;
-    margin-top: 15px;
-}
-
-.partnerFields input {
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.partnerFields input:focus {
-    border-color: #fff;
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-}
-
-/* Анимация появления полей */
-.partnerFields {
-    animation: slideDown 0.3s ease-out;
-    transition: all 0.3s ease-out;
-    overflow: hidden;
-}
-
-/* Анимация для поля ФИО */
-.formRegistration .conditional-field {
-    transition: all 0.3s ease-out;
-    overflow: hidden;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
