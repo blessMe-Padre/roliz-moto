@@ -6,7 +6,7 @@ import stylesCart from "@/app/css/cart.module.css";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useStater } from "@/hooks/useStater";
+import { useStater, useCustomers } from "@/hooks/useStater";
 import { useActions } from "@/hooks/useActions";
 
 import { numberForText } from "@/app/workers/simpleWorker";
@@ -23,6 +23,7 @@ export default function Page({}) {
 
   const router = useRouter();
   const cart = useStater("cart");
+  const customer = useCustomers();
   const { removeAll, removeItems } = useActions();
   const formRef = useRef();
   const [buttonText, setButtonText] = useState("Оформить");
@@ -222,6 +223,7 @@ export default function Page({}) {
                   setSelecteAll={setSelectAll}
                   product={item}
                   index={index}
+                  customer={customer}
                 />
               );
             })}
@@ -241,7 +243,9 @@ export default function Page({}) {
                                  ${totalWeight} кг`}
                 </p>
 
-                <h5>{totalSum} ₽</h5>
+                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                {/* <h5>{totalSum} ₽</h5> */}
+                <h5>{customer.type === "Оптовый покупатель" ? `${totalSum} ₽` : "Цена по запросу"}</h5>
               </div>
 
               <div className={`${stylesCart.rowTotalSumUp}`}>
@@ -251,7 +255,9 @@ export default function Page({}) {
 
               <div className={`${stylesCart.rowTotalSumUp}`}>
                 <h4>Итого</h4>
-                <h4>{totalSum} ₽</h4>
+                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                {/* <h4>{totalSum} ₽</h4> */}
+                <h4>{customer.type === "Оптовый покупатель" ? `${totalSum} ₽` : "Цена по запросу"}</h4>
               </div>
 
               <button
@@ -286,6 +292,7 @@ const SingleItem = ({
   setSelecteAll,
   product,
   index,
+  customer,
 }) => {
   //product.attributes.weight
   //console.log(product.attributes)
@@ -367,7 +374,9 @@ const SingleItem = ({
       </div>
       <div className={`${stylesCart.cartProductColumn}`}>
         <h3 className={`${stylesCart.cartProductPrice}`}>
-          {product.price * quantity} ₽
+          {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+          {/* {product.price * quantity} ₽ */}
+          {customer?.type === "Оптовый покупатель" ? `${product.price * quantity} ₽` : "Цена по запросу"}
         </h3>
 
         <div className={`${stylesCart.productCardQuntity}`}>

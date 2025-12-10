@@ -191,7 +191,8 @@ export default function Home({ params }) {
                   {data.data.attributes.stock ? (
                     <>
                       <div>
-                        <h2 className="text-xl lg:text-3xl font-bold">{` ${customer.authStatus &&
+                        {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                        {/* <h2 className="text-xl lg:text-3xl font-bold">{` ${customer.authStatus &&
                           customer.type == "Оптовый покупатель"
                           ? data.data?.attributes.priceOpt
                             ? "Оптовая цена: " +
@@ -204,7 +205,14 @@ export default function Home({ params }) {
                           : Number(
                             roundPrice(data.data?.attributes.price)
                           ).toLocaleString("ru-RU")
-                          } ₽`}</h2>
+                          } ₽`}</h2> */}
+                        <h2 className="text-xl lg:text-3xl font-bold">
+                          {customer.authStatus && customer.type === "Оптовый покупатель"
+                            ? `${data.data?.attributes.priceOpt
+                                ? "Оптовая цена: " + Number(roundPrice(data.data?.attributes.priceOpt)).toLocaleString("ru-RU")
+                                : Number(roundPrice(data.data?.attributes.price)).toLocaleString("ru-RU")} ₽`
+                            : "Цена по запросу"}
+                        </h2>
                       </div>
                       <div className="flex justify-around items-center border rounded-lg">
                         <button
