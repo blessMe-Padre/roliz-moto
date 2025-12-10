@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useCustomers, useStater } from "@/hooks/useStater";
+import Image from "next/image";
+import styles from "@/app/css/mainpage.module.css";
+import stylesCart from "@/app/css/cart.module.css";
+
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useStater } from "@/hooks/useStater";
 import { useActions } from "@/hooks/useActions";
 import styles from "@/app/css/cart.module.css";
 import Image from "next/image";
@@ -15,8 +20,6 @@ export default function CartPage() {
   let tempTotalProducts = 0;
 
   const cart = useStater("cart");
-  const customer = useCustomers();
-
   const { removeAll, removeItems } = useActions();
   const formRef = useRef(null);
 
@@ -247,134 +250,65 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
-            {cart.map((item, index) => (
-              <SingleItem
-                key={`keyProductInCart_${index}_${item.id}`}
-                selectAll={selectAll}
-                totalSum={totalSum}
-                toDelete={toDelete}
-                setTotalSum={setTotalSum}
-                totalWeight={totalWeight}
-                setTotalWeight={setTotalWeight}
-                totalProducts={totalProducts}
-                setTotalProducts={setTotalProducts}
-                setSelecteAll={setSelectAll}
-                product={item}
-                index={index}
-                quantity={item.quantityForBuy}
-              />
-            ))}
+        <section className={stylesCart.mainCartBlock}>
+          <div className={stylesCart.mainLeftBlock}>
+            {cart.map((item, index) => {
+              return (
+                <SingleItem
+                  key={`keyProductInCart_${index}_${item.id}`}
+                  selectAll={selectAll}
+                  totalSum={totalSum}
+                  toDelete={toDelete}
+                  setTotalSum={setTotalSum}
+                  totalWeight={totalWeight}
+                  setTotalWeight={setTotalWeight}
+                  totalProducts={totalProducts}
+                  setTotalProducts={setTotalProducts}
+                  setSelecteAll={setSelectAll}
+                  product={item}
+                  index={index}
+                />
+              );
+            })}
           </div>
-        </div>
+          <article className={stylesCart.mainRightBlock}>
+            <div className={`${stylesCart.totalSumBlock}`}>
+              <div className={`${stylesCart.rowTotalSumUp}`}>
+                <p>
+                  Всего{" "}
+                  {`${totalProducts ? totalProducts : 0} 
+                                 ${
+                                   totalProducts
+                                     ? numberForText(totalProducts)
+                                     : numberForText(0)
+                                 } 
+                                 * 
+                                 ${totalWeight} кг`}
+                </p>
 
-        {/* Итоговая сумма */}
-        <section className={styles.totalSum}>
-          <div className={`${styles.totalSumRow}`}>
-            <h5>Всего</h5>
-            <h5>{totalSum} ₽</h5>
-          </div>
-          <p>
-            {customer.type === "Оптовый покупатель" ? (
-               <>
-                *Указана оптовая цена, сумма может отличаться от итоговой. Конечную
-                стоимость уточняйте у менеджера.
-               </>
-            ): (
-              <>
-                *Указана розничная цена, сумма может отличаться от итоговой. Конечную
-                стоимость уточняйте у менеджера.
-              </>
-            )}
-          </p>
-        </section>
+                <h5>{totalSum} ₽</h5>
+              </div>
 
-        {/* Блок оформления заказа */}
-        {!toOrder ? (
-          <section className={`${styles.sideOrderBlock} `}>
-            <button
-              className="w-full bg-yellow-default rounded-md py-3 active:bg-yellow-dark cursor-pointer disabled:opacity-60 disabled:cursor-default"
-              onClick={() => {
-                if (cart.length > 0 && isChecked) {
-                  setToOrder(!toOrder);
+              <div className={`${stylesCart.rowTotalSumUp}`}>
+                <span>Скидка</span>
+                <span>Нет</span>
+              </div>
+
+              <div className={`${stylesCart.rowTotalSumUp}`}>
+                <h4>Итого</h4>
+                <h4>{totalSum} ₽</h4>
+              </div>
+
+              <button
+                onClick={
+                  buttonText == "Оформить" && cart && cart[0]
+                    ? getAllData
+                    : null
                 }
-              }}
-              disabled={!isChecked}
-            >
-              {buttonText}
-            </button>
-            <div className="mt-4 flex items-start">
-              <input
-                type="checkbox"
-                id="agreement"
-                className="mt-1"
-                onChange={(e) =>
-                  cart.length > 0 && setIsChecked(e.target.checked)
-                }
-              />
-              <label className="pl-2" htmlFor="agreement">
-                {isExpanded ? (
-                  <p className="max-h-[200px] overflow-y-auto m-0">
-                    Настоящим подтверждаю, что я ознакомлен и согласен на
-                    обработку персональных данных. Я, своей волей и в своем
-                    интересе даю согласие на обработку, в том числе на сбор,
-                    систематизацию, накопление, хранение (уточнение, обновление,
-                    изменение), использование, передачу третьим лицам,
-                    обезличивание, блокирование и уничтожение моих персональных
-                    данных — фамилии, имени, отчества, номера контактного
-                    телефона, адреса электронной почты, ООО «Эконика», юридический
-                    адрес: 692519, г.Уссурийск, ул.Володарского, 9 пом. 13 (далее
-                    — «Продавец»), с целью предоставления мне товаров и услуг
-                    (продуктов), включая, но не ограничиваясь: идентификацией,
-                    осуществление доставки, предоставление сервисных услуг,
-                    распространения информационных и рекламных сообщений (по SMS,
-                    электронной почте, телефону, иным средствам связи), получения
-                    обратной связи. Настоящим, я также даю свое согласие на
-                    трансграничную передачу моих персональных данных, в том числе
-                    на территории иностранных государств, не включенных в
-                    перечень, утвержденный Приказом Роскомнадзора от 15.03.2013 N
-                    274 (ред. от 29.10.2014) «Об утверждении перечня иностранных
-                    государств, не являющихся сторонами Конвенции Совета Европы о
-                    защите физических лиц при автоматизированной обработке
-                    персональных данных и обеспечивающих адекватную защиту прав
-                    субъектов персональных данных», для выполнения вышеуказанных
-                    целей обработки персональных данных. Подтверждаю, что
-                    персональные данные и иные сведения, относящиеся ко мне
-                    (фамилия, имя, отчество, номер контактного телефона, адрес
-                    электронной почты) предоставлены мною Продавцу путем внесения
-                    их при регистрации на сайте roliz-moto.ru добровольно и
-                    являются достоверными. Я извещен о том, что в случае
-                    недостоверности предоставленных персональных и сведений
-                    Продавец оставляет за собой право прекратить обслуживание
-                    посредством сайта roliz-moto.ru. Я согласен, что мои
-                    персональные данные будут обрабатываться способами,
-                    соответствующими целям обработки персональных данных, без
-                                    возможности принятия решения на основании исключительно
-                                    автоматизированной обработки моих персональных данных.
-                                    Согласие дается мной на 10 лет с момента регистрации на сайте
-                                    roliz-moto.ru и до моего сведения доведено, что по истечении
-                                    данного срока мое согласие автоматически продлевается на 10
-                                    лет. Настоящее согласие может быть отозвано мной в любой
-                                    момент путем направления письменного требования в адрес
-                                    Продавца. Адрес электронной почты Продавца:
-                                    magazin@roliz-moto.ru
-                  </p>
-                ) : (
-                  <>
-                    <p className="m-0">
-                      Настоящим подтверждаю, что я ознакомлен и согласен на
-                      обработку персональных данных.
-                    </p>
-                  </>
-                )}
-                <button onClick={() => setIsExpanded(!isExpanded)}>
-                  {isExpanded ? (
-                    <p className="underline ">Скрыть</p>
-                  ) : (
-                    <p className="underline ">Подробнее</p>
-                  )}
-                </button>
-              </label>
+                className={`${stylesCart.buttonOrder}`}
+              >
+                {buttonText}
+              </button>
             </div>
           </section>
         ) : (
@@ -400,6 +334,7 @@ const SingleItem = ({
   setSelecteAll,
   product,
   index,
+  customer,
 }) => {
   //product.attributes.weight
   const [quantity, setQuantity] = useState(product.quantityForBuy);
@@ -483,10 +418,32 @@ const SingleItem = ({
           )
         ) : null}
       </div>
-      <div className={`${styles.cartProductColumn}`}>
-        <p className={`${styles.cartProductName}`}>{product.title}</p>
-        <div className={`${styles.productCardQuntity} ${styles.productCardQuntityPage}`}>
-          <button onClick={minus} className={`${styles.productCardButton}`}>
+      <div className={`${stylesCart.cartProductColumn}`}>
+        <h3 className={`${stylesCart.cartProductName}`}>{product.title}</h3>
+        <p>
+          Вес:{" "}
+          {`${
+            product?.attributes
+              ? product.attributes.find((item) => item.name == "Вес")?.value
+              : 0
+          }`}{" "}
+          кг
+        </p>
+
+        <div className={`${stylesCart.selectedRow}`}>
+          <div className={`${stylesCart.iconBlock}`}>
+            <Image unoptimized src="/exit.svg" alt="exit" fill />
+          </div>
+          <span onClick={() => removeItems(product.id)}>Удалить</span>
+        </div>
+      </div>
+      <div className={`${stylesCart.cartProductColumn}`}>
+        <h3 className={`${stylesCart.cartProductPrice}`}>
+          {product.price * quantity} ₽
+        </h3>
+
+        <div className={`${stylesCart.productCardQuntity}`}>
+          <button onClick={minus} className={`${stylesCart.productCardButton}`}>
             <Image
               unoptimized
               src={"/minus.svg"}

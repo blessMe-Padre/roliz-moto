@@ -130,7 +130,9 @@ export const SearchForm = ({ }) => {
                                         <li key={`resultSearch_key_${index}_${item.id}`}>
                                             <Link key={`resultSearch_key_${index}_${item.id}`} onClick={() => goToResult()} className={`${styles.resultItem}`} href={`/routes/shop/products/${item.id}`}>
                                                 <h3>{item.attributes.title}</h3>
-                                                <p>{(item.attributes.price) ? item.attributes.price : 'Нет цены'}</p>
+                                                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                                                {/* <p>{(item.attributes.price) ? item.attributes.price : 'Нет цены'}</p> */}
+                                                <p>Цена по запросу</p>
                                             </Link>
                                         </li>
                                     )
@@ -166,7 +168,9 @@ export const SearchForm = ({ }) => {
                                             return (
                                                 <Link key={`resultSearch_key_${index}_${item.id}`} onClick={() => goToResult()} className={`${styles.resultItem}`} href={`/routes/shop/products/${item.id}`}>
                                                     <h3>{item.attributes.title}</h3>
-                                                    <p>{(item.attributes.price) ? item.attributes.price + " ₽" : 'Нет цены'}</p>
+                                                    {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                                                    {/* <p>{(item.attributes.price) ? item.attributes.price + " ₽" : 'Нет цены'}</p> */}
+                                                    <p>Цена по запросу</p>
                                                 </Link>
                                             )
                                         })

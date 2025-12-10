@@ -137,14 +137,18 @@ export const ProductCard = ({ item, viewMode, forPartners }) => {
 
             <h3 className={`${styles.productCardTitle}`}>{product.title}</h3>
             <p className={styles.price}>
-              {product.priceOpt &&
+              {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+              {/* {product.priceOpt &&
                 customer.authStatus &&
                 customer.type === "Оптовый покупатель" && forPartners
                 ? Number(roundPrice(product.priceOpt)).toLocaleString("ru-RU")
                 : Number(roundPrice(product.price)).toLocaleString(
                   "ru-RU"
                 )}{" "}
-              ₽
+              ₽ */}
+              {customer.type === "Оптовый покупатель" && forPartners
+                ? `${Number(roundPrice(product.priceOpt || product.price)).toLocaleString("ru-RU")} ₽`
+                : "Цена по запросу"}
             </p>
           </Link>
           <div className="relative flex justify-between gap-4 lg:gap-12">
@@ -218,9 +222,13 @@ export const ProductCard = ({ item, viewMode, forPartners }) => {
             </div>
             <div className="py-6 h-full flex flex-col items-start justify-between ">
               <p className="text-2xl font-bold">
-                {customer.type === "Оптовый покупатель" && forPartners
+                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                {/* {customer.type === "Оптовый покупатель" && forPartners
                   ? roundPrice(product.priceOpt)
-                  : roundPrice(product.price)} ₽
+                  : roundPrice(product.price)} ₽ */}
+                {customer.type === "Оптовый покупатель" && forPartners
+                  ? `${roundPrice(product.priceOpt || product.price)} ₽`
+                  : "Цена по запросу"}
               </p>
 
               <div className="grid grid-cols-2 gap-2 justify-between w-full ">
@@ -312,10 +320,14 @@ export const ProductCard = ({ item, viewMode, forPartners }) => {
               </div>
               {/* price */}
               <p className="text-sm xl:text-xl font-bold justify-self-center">
-                {customer.type === "Оптовый покупатель" && forPartners
+                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                {/* {customer.type === "Оптовый покупатель" && forPartners
                   ? roundPrice(product.priceOpt)
                   : roundPrice(product.price)}{" "}
-                ₽
+                ₽ */}
+                {customer.type === "Оптовый покупатель" && forPartners
+                  ? `${roundPrice(product.priceOpt || product.price)} ₽`
+                  : "Цена по запросу"}
               </p>
               {/* quantity */}
               <div className="w-full py-2 border rounded-md flex justify-around items-center">
@@ -412,10 +424,14 @@ export const ProductCard = ({ item, viewMode, forPartners }) => {
               </div>
               {/* price */}
               <p className="text-sm font-bold justify-self-center">
-                {customer.type === "Оптовый покупатель" && forPartners
+                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+                {/* {customer.type === "Оптовый покупатель" && forPartners
                   ? roundPrice(product.priceOpt)
                   : roundPrice(product.price)}{" "}
-                ₽
+                ₽ */}
+                {customer.type === "Оптовый покупатель" && forPartners
+                  ? `${roundPrice(product.priceOpt || product.price)} ₽`
+                  : "Цена по запросу"}
               </p>
               {/* quantity */}
               <div className="w-full py-2 border rounded-md flex justify-around items-center">

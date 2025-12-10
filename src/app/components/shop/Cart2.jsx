@@ -564,7 +564,9 @@ export const SideContent = ({ inBurger = false }) => {
       <section className={styles.totalSum}>
         <div className={`${styles.totalSumRow}`}>
           <h5>Всего</h5>
-          <h5>{totalSum} ₽</h5>
+          {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+          {/* <h5>{totalSum} ₽</h5> */}
+          <h5>{customer.type === "Оптовый покупатель" ? `${totalSum} ₽` : "Цена по запросу"}</h5>
         </div>
         <p>
           {customer.type === "Оптовый покупатель" ? (
@@ -573,9 +575,13 @@ export const SideContent = ({ inBurger = false }) => {
               стоимость уточняйте у менеджера.
              </>
           ): (
-            <>
+            /* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */
+            /* <>
               *Указана розничная цена, сумма может отличаться от итоговой. Конечную
               стоимость уточняйте у менеджера.
+            </> */
+            <>
+              *Конечную стоимость уточняйте у менеджера.
             </>
           )}
          
@@ -804,12 +810,18 @@ const SingleItem = ({
       </div>
       <div className={`${styles.cartProductColumn}`}>
         <p className={`${styles.cartProductPrice}`}>
-          {customer.type == "Оптовый покупатель"
+          {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+          {/* {customer.type == "Оптовый покупатель"
             ? product.priceOpt
               ? product.priceOpt * quantity
               : product.price * quantity
             : product.price * quantity}{" "}
-          ₽
+          ₽ */}
+          {customer.type === "Оптовый покупатель"
+            ? `${product.priceOpt
+                ? product.priceOpt * quantity
+                : product.price * quantity} ₽`
+            : "Цена по запросу"}
         </p>
         <div className={`${styles.selectedRow}`}>
           <p
@@ -867,7 +879,9 @@ const PriceCard = ({ }) => {
   return (
     <>
       <p key={`counterKeys_${tempTotalSum}`} className={`${styles.countItems}`}>
-        {totalSum}₽
+        {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
+        {/* {totalSum}₽ */}
+        {customer.type === "Оптовый покупатель" ? `${totalSum}₽` : ""}
       </p>
     </>
   );
