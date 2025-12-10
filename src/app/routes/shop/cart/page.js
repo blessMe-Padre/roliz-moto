@@ -6,27 +6,24 @@ import stylesCart from "@/app/css/cart.module.css";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useStater, useCustomers } from "@/hooks/useStater";
+import { useStater } from "@/hooks/useStater";
 import { useActions } from "@/hooks/useActions";
+import styles from "@/app/css/cart.module.css";
+import Image from "next/image";
+import { Forms } from "@/app/components/Forms";
+import Link from "next/link";
 
-import { numberForText } from "@/app/workers/simpleWorker";
-
-import Delivery from "@/app/components/shop/Delivery";
-
-const errorMessageInput = "Введите коррекные данные";
-
-export default function Page({}) {
+export default function CartPage() {
   //Инициализация количества, веса и суммы
   let tempTotalSum = 0;
   let tempTotalWeight = 0;
   let tempTotalProducts = 0;
 
-  const router = useRouter();
   const cart = useStater("cart");
-  const customer = useCustomers();
   const { removeAll, removeItems } = useActions();
-  const formRef = useRef();
-  const [buttonText, setButtonText] = useState("Оформить");
+  const formRef = useRef(null);
+
+  const [buttonText, setButtonText] = useState("Оформить заказ");
   const [selectAll, setSelectAll] = useState(false);
   //Разово получаем все данные по сумме, весу и общему количеству
 
@@ -34,6 +31,13 @@ export default function Page({}) {
   const [totalSum, setTotalSum] = useState(tempTotalSum);
   const [totalProducts, setTotalProducts] = useState(tempTotalProducts);
   const [forDelete, setForDelete] = useState([]);
+
+  const [toOrder, setToOrder] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Убедитесь, что переменная `errorMessageInput` определена
+  const errorMessageInput = "Ошибка ввода";
 
   /**
    * Получаем данные из forwardRef формы
@@ -43,6 +47,8 @@ export default function Page({}) {
     let canSend = true;
     let dataForm = formRef.current.elements;
     dataForm = Array.from(dataForm);
+
+    console.log("dataForm ", dataForm);
 
     const allData = {};
     setButtonText("Отправка...");
@@ -61,6 +67,7 @@ export default function Page({}) {
           }
         }
       }
+
       if (
         item.type === "text" ||
         item.type === "number" ||
@@ -85,9 +92,6 @@ export default function Page({}) {
             case "address":
               allData.Address = item.value;
               break;
-            case "address":
-              allData.Address = item.value;
-              break;
             case "comments":
               allData.Comment = item.value;
               break;
@@ -98,16 +102,29 @@ export default function Page({}) {
               allData.Email = item.value;
               break;
             default:
-            ////console.log("Ошибка в данных формы")
           }
         }
       }
     });
 
-    allData.Items = cart;
+    // Создаем массив товаров с полной информацией (включая количество)
+    allData.Items = cart.map((item) => ({
+      id: item.id,
+      title: item.title,
+      price: customer.type === "Оптовый покупатель" ? (item.priceOpt || item.price) : item.price,
+      quantitySales: item.quantityForBuy,
+      totalPrice: (customer.type === "Оптовый покупатель" ? (item.priceOpt || item.price) : item.price) * item.quantityForBuy
+    }));
+    
+    // Добавляем общую информацию о заказе
+    allData.TotalItems = cart.reduce((sum, item) => sum + item.quantityForBuy, 0);
+    allData.TotalPrice = cart.reduce((sum, item) => {
+      const price = customer.type === "Оптовый покупатель" ? (item.priceOpt || item.price) : item.price;
+      return sum + (price * item.quantityForBuy);
+    }, 0);
+    
     if (!allData.Delivery) allData.Delivery = "Не указан";
     if (!allData.PaymentMethod) allData.Delivery = "Не указан";
-    ////console.log(allData)
     if (canSend) {
       const sending = fetch(
         `${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_SENDORDER}`,
@@ -118,27 +135,19 @@ export default function Page({}) {
           },
           body: JSON.stringify(allData),
         }
-      )
-        .then((res) => {
-          if (res.ok) {
-            removeAll("");
-            setButtonText("Заказ создан");
-            setTimeout(() => {
-              setButtonText("Оформить");
-            }, 2500);
-          } else {
-            console.error("Ошибка при создании заказа:", res.statusText);
-            setButtonText("Ошибка при отправке");
-          }
-        })
-        .catch((error) => {
-          console.error("Ошибка сети:", error);
-          setButtonText("Ошибка сети");
-        });
+      ).then((res) => {
+        if (res.status == 200) {
+          removeAll("");
+          setButtonText("Заказ создан");
+          setTimeout(() => {
+            setButtonText("Оформить заказ");
+          }, 2500);
+        }
+      });
     } else {
       setButtonText("Укажите данные");
       setTimeout(() => {
-        setButtonText("Оформить");
+        setButtonText("Оформить заказ");
       }, 1000);
       canSend = true;
     }
@@ -157,54 +166,89 @@ export default function Page({}) {
     setForDelete([]);
   };
 
-  useEffect(() => {}, [cart, forDelete]);
+  useEffect(() => { }, [cart, forDelete]);
   useEffect(() => {
     toDelete();
   }, [selectAll]);
+
   useEffect(() => {
-    cart.forEach((item, index) => {
-      tempTotalSum += item.price * item.quantityForBuy;
-      tempTotalWeight += item.attributes
-        ? item.attributes.find((item) => item.name == "Вес")?.value
-        : 0 * item.quantityForBuy;
+    // Сбрасываем переменные перед вычислением
+    let tempTotalSum = 0;
+    let tempTotalWeight = 0;
+    let tempTotalProducts = 0;
+
+    cart.forEach((item) => {
+      const price =
+        customer.type === "Оптовый покупатель"
+          ? item.priceOpt || item.price
+          : item.price;
+      const weight = item.attributes
+        ? item.attributes.find((attr) => attr.name === "Вес")?.value || 0
+        : 0;
+
+      tempTotalSum += price * item.quantityForBuy;
+      tempTotalWeight += weight * item.quantityForBuy;
       tempTotalProducts += item.quantityForBuy;
     });
+
     setTotalWeight(tempTotalWeight);
     setTotalProducts(tempTotalProducts);
     setTotalSum(tempTotalSum);
-  }, [cart.length]);
+  }, [cart, customer.type]);
+
+  if (cart.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Корзина пуста</h1>
+          <p className="text-gray-600 mb-8">Добавьте товары в корзину для оформления заказа</p>
+          <Link 
+            href="/routes/shop" 
+            className="bg-yellow-default text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-dark transition-colors"
+          >
+            Перейти к покупкам
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <main className={styles.main}>
-        <div className={`${styles.headerRow}`}>
-          <h1>Корзина</h1>
-          <p>
-            {totalProducts ? totalProducts : 0}{" "}
-            {totalProducts ? numberForText(totalProducts) : numberForText(0)}
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Заголовок страницы */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Корзина</h1>
+          <p className="text-gray-600">Товаров в корзине: {totalProducts}</p>
         </div>
-        <div className={`${styles.headerRow}`}>
-          <div className={`${styles.selectedRow}`}>
-            <input
-              onClick={() => setSelectAll(!selectAll)}
-              type="checkbox"
-              name="selectAll"
-              id="selectAll"
-              value={selectAll}
-              onChange={() => setSelectAll(!selectAll)}
-            />
-            <span>Выбрать все</span>
-          </div>
-          <div className={`${styles.selectedRow}`}>
-            <div className={`${styles.iconBlock}`}>
-              <Image unoptimized src="/exit.svg" alt="exit" fill />
+    
+
+        {/* Список товаров */}
+        <div className="bg-white rounded-lg shadow-sm mb-8">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-800">Товары в корзине</h2>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={(e) => setSelectAll(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-600">Выбрать все</span>
+                </label>
+                {forDelete.length > 0 && (
+                  <button
+                    onClick={deleteSelected}
+                    className="text-red-600 hover:text-red-800 text-sm underline"
+                  >
+                    Удалить выбранные ({forDelete.length})
+                  </button>
+                )}
+              </div>
             </div>
-            <span onClick={deleteSelected} className={styles.deleteSelected}>
-              Удалить выбранное
-            </span>
           </div>
-        </div>
 
         <section className={stylesCart.mainCartBlock}>
           <div className={stylesCart.mainLeftBlock}>
@@ -223,7 +267,6 @@ export default function Page({}) {
                   setSelecteAll={setSelectAll}
                   product={item}
                   index={index}
-                  customer={customer}
                 />
               );
             })}
@@ -243,9 +286,7 @@ export default function Page({}) {
                                  ${totalWeight} кг`}
                 </p>
 
-                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
-                {/* <h5>{totalSum} ₽</h5> */}
-                <h5>{customer.type === "Оптовый покупатель" ? `${totalSum} ₽` : "Цена по запросу"}</h5>
+                <h5>{totalSum} ₽</h5>
               </div>
 
               <div className={`${stylesCart.rowTotalSumUp}`}>
@@ -255,9 +296,7 @@ export default function Page({}) {
 
               <div className={`${stylesCart.rowTotalSumUp}`}>
                 <h4>Итого</h4>
-                {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
-                {/* <h4>{totalSum} ₽</h4> */}
-                <h4>{customer.type === "Оптовый покупатель" ? `${totalSum} ₽` : "Цена по запросу"}</h4>
+                <h4>{totalSum} ₽</h4>
               </div>
 
               <button
@@ -271,12 +310,15 @@ export default function Page({}) {
                 {buttonText}
               </button>
             </div>
-          </article>
-        </section>
-
-        <Delivery ref={formRef} />
-      </main>
-    </>
+          </section>
+        ) : (
+          // показываем форму для заказа
+          <section className={`${styles.sideOrderBlock}`}>
+            <Forms customer={customer} place={"order"} />
+          </section>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -295,63 +337,86 @@ const SingleItem = ({
   customer,
 }) => {
   //product.attributes.weight
-  //console.log(product.attributes)
   const [quantity, setQuantity] = useState(product.quantityForBuy);
-
-  const { removeAll, removeItems } = useActions();
+  const { removeAll, removeItems, updateQuantity } = useActions();
+  const customer = useCustomers();
 
   const minus = (e) => {
-    const weight = product.attributes
-      ? product.attributes.find((item) => item.name == "Вес")?.value
-      : 0;
-    if (quantity > 1) setQuantity(quantity - 1);
-    setTotalSum(Number.parseFloat(totalSum) - Number.parseFloat(product.price));
+    if (isNaN(product.stock) || quantity <= 1) return;
+
+    const weight =
+      product.attributes?.find((item) => item.name === "Вес")?.value || 0;
+    const price =
+      customer.type === "Оптовый покупатель"
+        ? product.priceOpt || product.price
+        : product.price;
+
+    const newQuantity = quantity - 1;
+
+    // Уменьшаем количество только если оно больше 1
+    setQuantity(newQuantity);
+    updateQuantity({ id: product.id, quantitySales: newQuantity });
+    setTotalSum(Number.parseFloat(totalSum) - Number.parseFloat(price));
     setTotalWeight(Number.parseFloat(totalWeight) - Number.parseFloat(weight));
     setTotalProducts(totalProducts - 1);
   };
+
   const plus = (e) => {
-    const weight = product.attributes
-      ? product.attributes.find((item) => item.name == "Вес")?.value
-      : 0;
-    if (quantity < product.stock) setQuantity(quantity + 1);
-    setTotalSum(Number.parseFloat(totalSum) + Number.parseFloat(product.price));
-    setTotalWeight(Number.parseFloat(totalWeight) + Number.parseFloat(weight));
-    setTotalProducts(totalProducts + 1);
+    if (isNaN(product.stock)) return;
+
+    const weight =
+      product.attributes?.find((item) => item.name === "Вес")?.value || 0;
+    const price =
+      customer.type === "Оптовый покупатель"
+        ? product.priceOpt || product.price
+        : product.price;
+
+    // Увеличиваем количество только если оно меньше запаса
+    if (quantity < product.stock) {
+      const newQuantity = quantity + 1;
+      setQuantity(newQuantity);
+      updateQuantity({ id: product.id, quantitySales: newQuantity });
+      setTotalSum(Number.parseFloat(totalSum) + Number.parseFloat(price));
+      setTotalWeight(
+        Number.parseFloat(totalWeight) + Number.parseFloat(weight)
+      );
+      setTotalProducts(totalProducts + 1);
+    }
   };
 
+  useEffect(() => { }, [quantity]);
+  useEffect(() => { }, [selectAll]);
+
+  // Синхронизируем локальное состояние с Redux store
+  useEffect(() => {
+    setQuantity(product.quantityForBuy);
+  }, [product.quantityForBuy]);
+
   if (!product) return null;
-
-  useEffect(() => {}, [quantity]);
-
-  useEffect(() => {}, [selectAll]);
 
   return (
     <article
       key={`keyCartProduct_${product.id}`}
-      className={`${stylesCart.cartProduct}`}
+      className={`${styles.cartProduct} ${styles.cartProductPage}`}
     >
-      <div className={`${stylesCart.selectProductBlock}`}>
-        <input
-          onClick={(evt) => {
-            toDelete(Number.parseInt(evt.target.value));
-            setSelecteAll(false);
-          }}
-          type="checkbox"
-          name={`selectPRoduct_${index}`}
-          value={product.id}
-          checked={selectAll ? selectAll : null}
-          id={`selectPRoduct_${index}`}
-        />
-      </div>
-      <div className={`${stylesCart.cartProductImage}`}>
-        <Image
-          unoptimized
-          src={`${process.env.NEXT_PUBLIC_PROTOCOL}://${
-            process.env.NEXT_PUBLIC_URL_API
-          }${!Array.isArray(product.image) ? product.image : product.image[0]}`}
-          alt={product.title}
-          fill
-        />
+      <div className={`${styles.cartProductImage}`}>
+        {product ? (
+          Array.isArray(product?.image[0]) ? (
+            <Image
+              unoptimized
+              src={`${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_URL_API}${product?.image[0]}`}
+              alt={product.title}
+              fill
+            />
+          ) : (
+            <Image
+              unoptimized
+              src={`${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_URL_FRONT}${product?.image}`}
+              alt={product.title}
+              fill
+            />
+          )
+        ) : null}
       </div>
       <div className={`${stylesCart.cartProductColumn}`}>
         <h3 className={`${stylesCart.cartProductName}`}>{product.title}</h3>
@@ -374,9 +439,7 @@ const SingleItem = ({
       </div>
       <div className={`${stylesCart.cartProductColumn}`}>
         <h3 className={`${stylesCart.cartProductPrice}`}>
-          {/* TODO: Раскомментировать когда клиент захочет снова показывать цену для розничных покупателей */}
-          {/* {product.price * quantity} ₽ */}
-          {customer?.type === "Оптовый покупатель" ? `${product.price * quantity} ₽` : "Цена по запросу"}
+          {product.price * quantity} ₽
         </h3>
 
         <div className={`${stylesCart.productCardQuntity}`}>
@@ -388,8 +451,9 @@ const SingleItem = ({
               fill
             />
           </button>
-          <p>{quantity}</p>
-          <button onClick={plus} className={`${stylesCart.productCardButton}`}>
+          {/* ============================================== */}
+          <p className="text-sm">{quantity}</p>
+          <button onClick={plus} className={`${styles.productCardButton}`}>
             <Image
               unoptimized
               src={"/plus.svg"}
@@ -397,6 +461,24 @@ const SingleItem = ({
               fill
             />
           </button>
+        </div>
+      </div>
+      <div className={`${styles.cartProductColumn}`}>
+        <p className={`${styles.cartProductPrice}`}>
+          {customer.type == "Оптовый покупатель"
+            ? product.priceOpt
+              ? product.priceOpt * quantity
+              : product.price * quantity
+            : product.price * quantity}{" "}
+          ₽
+        </p>
+        <div className={`${styles.selectedRow}`}>
+          <p
+            onClick={() => removeItems(product.id)}
+            className="text-sm text-gray-light hover:text-gray-dark transition-all"
+          >
+            Удалить
+          </p>
         </div>
       </div>
     </article>

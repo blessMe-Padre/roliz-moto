@@ -445,6 +445,10 @@ const OrderForm = ({ place = "", setPlace = (f) => f, idItems = 0 }) => {
     formJSON.TotalItems = orderItems.reduce((sum, item) => sum + item.quantitySales, 0);
     formJSON.TotalPrice = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
+    // Добавляем общую информацию о заказе
+    formJSON.TotalItems = orderItems.reduce((sum, item) => sum + item.quantitySales, 0);
+    formJSON.TotalPrice = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
+
     console.log(formJSON)
 
     try {
@@ -883,7 +887,7 @@ const RegForm = ({ place = "", setPlace = (f) => f }) => {
       <button type="submit">
         Отправить
       </button>
-    </form>
+    </form >
   );
 };
 
@@ -1187,7 +1191,6 @@ const validateForms = (form, formRef) => {
         }
         data[1] = "success";
         break;
-
       case "website":
         // Сайт не обязателен, но если указан, проверяем формат
         if (data[1] && !/^https?:\/\/.+/.test(data[1])) {

@@ -76,6 +76,9 @@
 
 .checkbox_partner input:checked {
     background-color: #FFCA18;
+    border-color: #FFCA18;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
 }
 
 .checkbox_partner input:checked+label {
